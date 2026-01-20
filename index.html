@@ -11,6 +11,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent; /* إزالة اللون الأزرق عند النقر على الهواتف */
         }
         
         body {
@@ -282,6 +283,13 @@
             min-height: 90px;
             backdrop-filter: blur(15px);
             text-decoration: none;
+            color: inherit; /* الحفاظ على لون النص */
+        }
+        
+        /* تحسين تأثيرات اللمس للهواتف */
+        .social-item:active {
+            transform: translateY(-5px) scale(0.98);
+            transition: transform 0.1s ease;
         }
         
         /* تأثيرات Hover للروابط فقط - بدون 3D */
@@ -340,6 +348,12 @@
         .social-item:hover .social-icon {
             transform: scale(1.15) rotate(5deg);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        }
+        
+        /* تأثير عند الضغط على الهواتف */
+        .social-item:active .social-icon {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
         }
         
         .tiktok .social-icon {
@@ -489,6 +503,11 @@
             .platform-name {
                 font-size: 1.2rem;
             }
+            
+            /* تحسين المسافة بين العناصر للهواتف */
+            .social-container {
+                gap: 15px;
+            }
         }
         
         @media screen and (max-width: 480px) {
@@ -631,6 +650,35 @@
                 font-size: 2rem;
             }
         }
+        
+        /* تحسين لمس الهواتف */
+        @media (hover: none) and (pointer: coarse) {
+            .social-item:hover {
+                transform: none !important;
+            }
+            
+            .social-item:hover .social-icon {
+                transform: none !important;
+            }
+            
+            .social-item:active {
+                transform: scale(0.98) !important;
+                background: rgba(255, 255, 255, 0.15) !important;
+            }
+            
+            /* تأثيرات خاصة لكل منصة عند الضغط على الهواتف */
+            .tiktok:active {
+                background: rgba(37, 244, 238, 0.15) !important;
+            }
+            
+            .instagram:active {
+                background: rgba(228, 64, 95, 0.15) !important;
+            }
+            
+            .whatsapp:active {
+                background: rgba(37, 211, 102, 0.15) !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -644,7 +692,7 @@
                     <div class="rotating-border"></div>
                     <div class="profile-pic">
                         <!-- الصورة b.jpeg -->
-                        <img src="b.jpeg" alt="Bacha Logo">
+                        <img src="b.jpeg" alt="Bacha Logo" onerror="this.src='https://via.placeholder.com/160x160/000000/FFFFFF?text=Bacha'">
                     </div>
                 </div>
                 <h1 class="profile-name">Bacha Top1</h1>
@@ -735,40 +783,8 @@
                 }
             }
             
-            // تأثيرات Hover للروابط (تعمل على الهواتف أيضًا)
-            if (socialItems.length > 0) {
-                socialItems.forEach(item => {
-                    // لمس للهواتف
-                    item.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        this.classList.add('active');
-                        this.style.transform = 'translateY(-5px)';
-                    });
-                    
-                    item.addEventListener('touchend', function(e) {
-                        e.preventDefault();
-                        this.classList.remove('active');
-                        this.style.transform = 'translateY(0)';
-                    });
-                    
-                    // hover للأجهزة المكتبية
-                    item.addEventListener('mouseenter', function() {
-                        this.style.transform = 'translateY(-8px)';
-                    });
-                    
-                    item.addEventListener('mouseleave', function() {
-                        this.style.transform = 'translateY(0)';
-                    });
-                    
-                    item.addEventListener('click', function(e) {
-                        // تأثير النقر
-                        this.style.transform = 'translateY(-5px) scale(0.98)';
-                        setTimeout(() => {
-                            this.style.transform = 'translateY(-8px)';
-                        }, 200);
-                    });
-                });
-            }
+            // تم إزالة المانع الذي كان يمنع عمل الروابط
+            // الآن الروابط ستشتغل بشكل طبيعي عند النقر/اللمس
             
             // تأثير عند تحميل الصفحة
             window.addEventListener('load', function() {
@@ -804,14 +820,52 @@
                 }, 500);
             });
             
+            // تحسين تجربة اللمس على الهواتف
+            let touchStartTime = 0;
+            
+            socialItems.forEach(item => {
+                item.addEventListener('touchstart', function(e) {
+                    touchStartTime = new Date().getTime();
+                    this.classList.add('active');
+                    
+                    // تأثير فوري عند اللمس
+                    this.style.transform = 'scale(0.98)';
+                    this.style.transition = 'transform 0.1s ease';
+                });
+                
+                item.addEventListener('touchend', function(e) {
+                    const touchEndTime = new Date().getTime();
+                    const touchDuration = touchEndTime - touchStartTime;
+                    
+                    this.classList.remove('active');
+                    
+                    // إعادة التنسيق بعد فترة قصيرة
+                    setTimeout(() => {
+                        if (touchDuration < 300) {
+                            // لمسة قصيرة - إعادة إلى الحالة الطبيعية بسرعة
+                            this.style.transform = '';
+                            this.style.transition = 'transform 0.3s ease';
+                        } else {
+                            // لمسة طويلة - إعادة ببطء
+                            this.style.transform = '';
+                            this.style.transition = 'transform 0.5s ease';
+                        }
+                    }, 100);
+                });
+                
+                // منع سلوك السحب على الروابط
+                item.addEventListener('touchmove', function(e) {
+                    e.preventDefault();
+                }, { passive: false });
+            });
+            
             // تحسين الأداء على الهواتف
-            let lastTouchTime = 0;
             document.addEventListener('touchmove', function(e) {
-                const currentTime = new Date().getTime();
-                if (currentTime - lastTouchTime > 100) {
-                    lastTouchTime = currentTime;
-                }
+                // لا شيء - يسمح بالسحب العادي
             }, { passive: true });
+            
+            // التأكد من أن الروابط تعمل على جميع الأجهزة
+            console.log("Social links are ready to work on all devices!");
         });
     </script>
 </body>
